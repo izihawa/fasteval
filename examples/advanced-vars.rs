@@ -15,7 +15,7 @@ fn main() -> Result<(), fasteval2::Error> {
             // The `args.get...` code is the same as:
             //     mydata[args[0] as usize]
             // ...but it won't panic if either index is out-of-bounds.
-            "data" => args.get(0).and_then(|f| mydata.get(*f as usize).copied()),
+            "data" => args.first().and_then(|f| mydata.get(*f as usize).copied()),
 
             // A wildcard to handle all undefined names:
             _ => None,

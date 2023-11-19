@@ -3,16 +3,23 @@ use fasteval2::compiler::Instruction::IEvalFunc;
 use fasteval2::compiler::Instruction::{
     self, IAdd, IConst, IExp, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan, IFuncATanH,
     IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog, IFuncMax, IFuncMin,
-    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncTan, IFuncTanH, IInv, IMod, IMul, INeg, INot,
-    IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan, IFuncTanH, IInv, IMod, IMul,
+    INeg, INot, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
 };
+
+#[cfg(feature = "print-func")]
+use fasteval2::{
+    compiler::Instruction::IPrintFunc,
+    parser::{
+        ExpressionOrString::{EExpr, EStr},
+        PrintFunc,
+    },
+};
+
 use fasteval2::compiler::IC;
 #[cfg(feature = "eval-builtin")]
 use fasteval2::parser::{EvalFunc, KWArg};
-use fasteval2::parser::{
-    ExpressionOrString::{EExpr, EStr},
-    PrintFunc,
-};
+
 use fasteval2::{
     eval_compiled, eval_compiled_ref, CachedCallbackNamespace, Compiler, EmptyNamespace, Error,
     Evaler, ExpressionI, InstructionI, Parser, Slab,
@@ -474,9 +481,9 @@ fn all_instrs() {
     comp_chk("4 ^ 0.5", IConst(2.0), "CompileSlab{ instrs:{} }", 2.0);
     comp_chk(
         "2 ^ 0.5",
-        IConst(1.4142135623730951),
+        IConst(std::f64::consts::SQRT_2),
         "CompileSlab{ instrs:{} }",
-        1.4142135623730951,
+        std::f64::consts::SQRT_2,
     );
     comp_chk_str(
         "-4 ^ 0.5",
@@ -491,7 +498,7 @@ fn all_instrs() {
             power: IC::C(0.5),
         },
         "CompileSlab{ instrs:{ 0:IVar(\"y\") } }",
-        1.4142135623730951,
+        std::f64::consts::SQRT_2,
     );
     comp_chk(
         "2 ^ 3 ^ 2",
@@ -913,8 +920,11 @@ fn all_instrs() {
         let (_s, i) = comp("int");
         assert_eq!(i, IVar("int".to_string()));
 
-        let (_s, i) = comp("print");
-        assert_eq!(i, IVar("print".to_string()));
+        #[cfg(feature = "print-func")]
+        {
+            let (_s, i) = comp("print");
+            assert_eq!(i, IVar("print".to_string()));
+        }
 
         let (_s, i) = comp("eval");
         assert_eq!(i, IVar("eval".to_string()));
@@ -1028,15 +1038,15 @@ fn all_instrs() {
     comp_chk("log(10)", IConst(1.0), "CompileSlab{ instrs:{} }", 1.0);
     comp_chk(
         "log(2, 10)",
-        IConst(3.321928094887362),
+        IConst(std::f64::consts::LOG2_10),
         "CompileSlab{ instrs:{} }",
-        3.321928094887362,
+        std::f64::consts::LOG2_10,
     );
     comp_chk(
         "log(e(), 10)",
-        IConst(2.302585092994046),
+        IConst(std::f64::consts::LN_10),
         "CompileSlab{ instrs:{} }",
-        2.302585092994046,
+        std::f64::consts::LN_10,
     );
     comp_chk(
         "log(x)",
@@ -1268,15 +1278,15 @@ fn all_instrs() {
     // IFuncACos
     comp_chk(
         "acos(0)",
-        IConst(1.5707963267948966),
+        IConst(std::f64::consts::FRAC_PI_2),
         "CompileSlab{ instrs:{} }",
-        1.5707963267948966,
+        std::f64::consts::FRAC_PI_2,
     );
     comp_chk(
         "acos(w)",
         IFuncACos(InstructionI(0)),
         "CompileSlab{ instrs:{ 0:IVar(\"w\") } }",
-        1.5707963267948966,
+        std::f64::consts::FRAC_PI_2,
     );
 
     // IFuncATan
@@ -1342,7 +1352,17 @@ fn all_instrs() {
         0.0,
     );
 
+    // IFuncSqrt
+    comp_chk("sqrt(0)", IConst(0.0), "CompileSlab{ instrs:{} }", 0.0);
+    comp_chk(
+        "sqrt(w)",
+        IFuncSqrt(InstructionI(0)),
+        "CompileSlab{ instrs:{ 0:IVar(\"w\") } }",
+        0.0,
+    );
+
     // IPrintFunc
+    #[cfg(feature = "print-func")]
     comp_chk(
         r#"print("test",1.23)"#,
         IPrintFunc(PrintFunc(vec![

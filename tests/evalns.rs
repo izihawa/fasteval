@@ -128,7 +128,7 @@ fn custom_vector_funcs() {
     ns.insert(
         "vec_sum",
         Box::new(|args| {
-            if let Some(index) = args.get(0) {
+            if let Some(index) = args.first() {
                 if let Some(v) = vecs_cell.borrow().get(*index as usize) {
                     return v.iter().sum();
                 }

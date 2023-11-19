@@ -1,6 +1,6 @@
 [package]
 name = "fasteval2"
-version = "2.0.3"
+version = "2.0.4"
 authors = ["Pasha Podolsky <ppodolsky@me.com>", "Christopher Sebastian <christopher@likebike.com>"]
 license = "MIT"
 readme = "README.md"
@@ -18,8 +18,8 @@ debug = true
 lto = true
 
 [features]
-default = ["alpha-keywords"]
+default = ["alpha-keywords", "print-func"]
 alpha-keywords = []  # Enable 'NaN', 'inf', 'and', 'or'
 unsafe-vars = []     # tinyexpr-style pointer-based variables.
 nightly = []         # Enable features that depend on Rust nightly.
-
+print-func = []      # Enables the builtin print function

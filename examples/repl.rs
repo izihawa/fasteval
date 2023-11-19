@@ -68,7 +68,7 @@ fn repl() {
             None => break,
         };
         let mut line = line.trim().to_string();
-        if line == "" {
+        if line.is_empty() {
             continue;
         }
 

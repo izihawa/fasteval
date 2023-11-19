@@ -21,12 +21,14 @@ fn basics() {
     assert_eq!(format!("{:?}",&slab),
 "Slab{ exprs:{ 0:Expression { first: EConstant(-43.0), pairs: [ExprPair(ESub, EConstant(0.21))] }, 1:Expression { first: EConstant(12.34), pairs: [ExprPair(EAdd, EStdFunc(EFuncAbs(ExpressionI(0)))), ExprPair(EAdd, EConstant(11.11))] } }, vals:{}, instrs:{} }");
 
+    #[cfg(feature = "print-func")]
     Parser::new()
         .parse("12.34 + print ( 43.21 ) + 11.11", &mut slab.ps)
         .unwrap();
     assert_eq!(format!("{:?}",&slab),
 "Slab{ exprs:{ 0:Expression { first: EConstant(43.21), pairs: [] }, 1:Expression { first: EConstant(12.34), pairs: [ExprPair(EAdd, EPrintFunc(PrintFunc([EExpr(ExpressionI(0))]))), ExprPair(EAdd, EConstant(11.11))] } }, vals:{}, instrs:{} }");
 
+    #[cfg(feature = "print-func")]
     Parser::new()
         .parse("12.34 + print [ 43.21 ] + 11.11", &mut slab.ps)
         .unwrap();
