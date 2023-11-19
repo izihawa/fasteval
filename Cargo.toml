@@ -18,7 +18,7 @@ debug = true
 lto = true
 
 [features]
-default = ["alpha-keywords"]
+default = ["alpha-keywords", "print-func"]
 alpha-keywords = []  # Enable 'NaN', 'inf', 'and', 'or'
 unsafe-vars = []     # tinyexpr-style pointer-based variables.
 nightly = []         # Enable features that depend on Rust nightly.
