@@ -13,8 +13,9 @@ use crate::compiler::{
     Instruction::{
         self, IAdd, IConst, IExp, IFunc, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan,
         IFuncATanH, IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog,
-        IFuncMax, IFuncMin, IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncTan, IFuncTanH, IInv,
-        IMod, IMul, INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+        IFuncMax, IFuncMin, IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan,
+        IFuncTanH, IInv, IMod, IMul, INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE,
+        INE, IOR,
     },
     IC,
 };
@@ -33,7 +34,7 @@ use crate::parser::{
     StdFunc::{
         self, EFunc, EFuncACos, EFuncACosH, EFuncASin, EFuncASinH, EFuncATan, EFuncATanH, EFuncAbs,
         EFuncCeil, EFuncCos, EFuncCosH, EFuncE, EFuncFloor, EFuncInt, EFuncLog, EFuncMax, EFuncMin,
-        EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncTan, EFuncTanH, EVar,
+        EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncSqrt, EFuncTan, EFuncTanH, EVar,
     },
     UnaryOp::{self, ENeg, ENot, EParentheses, EPos},
     Value::{self, EConstant, EPrintFunc, EStdFunc, EUnaryOp},
@@ -429,7 +430,9 @@ impl Evaler for StdFunc {
             EFuncInt(xi) | EFuncCeil(xi) | EFuncFloor(xi) | EFuncAbs(xi) | EFuncSign(xi)
             | EFuncSin(xi) | EFuncCos(xi) | EFuncTan(xi) | EFuncASin(xi) | EFuncACos(xi)
             | EFuncATan(xi) | EFuncSinH(xi) | EFuncCosH(xi) | EFuncTanH(xi) | EFuncASinH(xi)
-            | EFuncACosH(xi) | EFuncATanH(xi) => get_expr!(slab.ps, xi)._var_names(slab, dst),
+            | EFuncACosH(xi) | EFuncATanH(xi) | EFuncSqrt(xi) => {
+                get_expr!(slab.ps, xi)._var_names(slab, dst)
+            }
 
             EFuncE | EFuncPi => (),
             EFuncLog { base: opt, expr } | EFuncRound { modulus: opt, expr } => {
@@ -455,6 +458,7 @@ impl Evaler for StdFunc {
             EUnsafeVar { ptr, .. } => unsafe { Ok(**ptr) },
 
             EVar(name) => eval_var!(ns, name, Vec::new(), unsafe {
+                #[allow(invalid_reference_casting)]
                 &mut *(&slab.ps.char_buf as *const _ as *mut _)
             }),
             EFunc { name, args: xis } => {
@@ -463,6 +467,7 @@ impl Evaler for StdFunc {
                     args.push(get_expr!(slab.ps, xi).eval(slab, ns)?)
                 }
                 eval_var!(ns, name, args, unsafe {
+                    #[allow(invalid_reference_casting)]
                     &mut *(&slab.ps.char_buf as *const _ as *mut _)
                 })
             }
@@ -491,6 +496,7 @@ impl Evaler for StdFunc {
             EFuncASinH(expr_i) => Ok(get_expr!(slab.ps, expr_i).eval(slab, ns)?.asinh()),
             EFuncACosH(expr_i) => Ok(get_expr!(slab.ps, expr_i).eval(slab, ns)?.acosh()),
             EFuncATanH(expr_i) => Ok(get_expr!(slab.ps, expr_i).eval(slab, ns)?.atanh()),
+            EFuncSqrt(expr_i) => Ok(get_expr!(slab.ps, expr_i).eval(slab, ns)?.sqrt()),
 
             EFuncRound {
                 modulus: modulus_opt,
@@ -621,7 +627,7 @@ impl Evaler for Instruction {
             INeg(ii) | INot(ii) | IInv(ii) | IFuncInt(ii) | IFuncCeil(ii) | IFuncFloor(ii)
             | IFuncAbs(ii) | IFuncSign(ii) | IFuncSin(ii) | IFuncCos(ii) | IFuncTan(ii)
             | IFuncASin(ii) | IFuncACos(ii) | IFuncATan(ii) | IFuncSinH(ii) | IFuncCosH(ii)
-            | IFuncTanH(ii) | IFuncASinH(ii) | IFuncACosH(ii) | IFuncATanH(ii) => {
+            | IFuncTanH(ii) | IFuncASinH(ii) | IFuncACosH(ii) | IFuncATanH(ii) | IFuncSqrt(ii) => {
                 get_instr!(slab.cs, ii)._var_names(slab, dst)
             }
 
@@ -683,6 +689,7 @@ impl Evaler for Instruction {
             IInv(i) => Ok(1.0 / eval_compiled_ref!(get_instr!(slab.cs, i), slab, ns)),
 
             IVar(name) => eval_var!(ns, name, Vec::new(), unsafe {
+                #[allow(invalid_reference_casting)]
                 &mut *(&slab.ps.char_buf as *const _ as *mut _)
             }),
             IFunc { name, args: ics } => {
@@ -691,6 +698,7 @@ impl Evaler for Instruction {
                     args.push(eval_ic_ref!(ic, slab, ns));
                 }
                 eval_var!(ns, name, args, unsafe {
+                    #[allow(invalid_reference_casting)]
                     &mut *(&slab.ps.char_buf as *const _ as *mut _)
                 })
             }
@@ -716,6 +724,7 @@ impl Evaler for Instruction {
             IFuncASinH(i) => Ok(eval_compiled_ref!(get_instr!(slab.cs, i), slab, ns).asinh()),
             IFuncACosH(i) => Ok(eval_compiled_ref!(get_instr!(slab.cs, i), slab, ns).acosh()),
             IFuncATanH(i) => Ok(eval_compiled_ref!(get_instr!(slab.cs, i), slab, ns).atanh()),
+            IFuncSqrt(i) => Ok(eval_compiled_ref!(get_instr!(slab.cs, i), slab, ns).sqrt()),
 
             IFuncRound {
                 modulus: modic,

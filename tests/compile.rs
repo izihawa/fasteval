@@ -3,8 +3,8 @@ use fasteval2::compiler::Instruction::IEvalFunc;
 use fasteval2::compiler::Instruction::{
     self, IAdd, IConst, IExp, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan, IFuncATanH,
     IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog, IFuncMax, IFuncMin,
-    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncTan, IFuncTanH, IInv, IMod, IMul, INeg, INot,
-    IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan, IFuncTanH, IInv, IMod, IMul,
+    INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
 };
 use fasteval2::compiler::IC;
 #[cfg(feature = "eval-builtin")]
@@ -1338,6 +1338,15 @@ fn all_instrs() {
     comp_chk(
         "atanh(w)",
         IFuncATanH(InstructionI(0)),
+        "CompileSlab{ instrs:{ 0:IVar(\"w\") } }",
+        0.0,
+    );
+
+    // IFuncSqrt
+    comp_chk("sqrt(0)", IConst(0.0), "CompileSlab{ instrs:{} }", 0.0);
+    comp_chk(
+        "sqrt(w)",
+        IFuncSqrt(InstructionI(0)),
         "CompileSlab{ instrs:{ 0:IVar(\"w\") } }",
         0.0,
     );

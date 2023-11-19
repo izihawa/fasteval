@@ -148,13 +148,14 @@ pub enum StdFunc {
     EFuncASinH(ExpressionI),
     EFuncACosH(ExpressionI),
     EFuncATanH(ExpressionI),
+    EFuncSqrt(ExpressionI),
 }
 #[cfg(feature = "unsafe-vars")]
 use StdFunc::EUnsafeVar;
 use StdFunc::{
     EFunc, EFuncACos, EFuncACosH, EFuncASin, EFuncASinH, EFuncATan, EFuncATanH, EFuncAbs,
     EFuncCeil, EFuncCos, EFuncCosH, EFuncE, EFuncFloor, EFuncInt, EFuncLog, EFuncMax, EFuncMin,
-    EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncTan, EFuncTanH, EVar,
+    EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncSqrt, EFuncTan, EFuncTanH, EVar,
 };
 
 /// Represents a `print()` function call in the `fasteval` expression AST.
@@ -1060,6 +1061,16 @@ impl Parser {
                     }))
                 } else {
                     Err(Error::WrongArgs("atanh: expected one arg".to_string()))
+                }
+            }
+            "sqrt" => {
+                if args.len() == 1 {
+                    Ok(EFuncSqrt(match args.pop() {
+                        Some(xi) => xi,
+                        None => return Err(Error::Unreachable),
+                    }))
+                } else {
+                    Err(Error::WrongArgs("sqrt: expected one arg".to_string()))
                 }
             }
 

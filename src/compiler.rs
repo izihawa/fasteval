@@ -34,7 +34,7 @@ use crate::parser::{
     StdFunc::{
         self, EFunc, EFuncACos, EFuncACosH, EFuncASin, EFuncASinH, EFuncATan, EFuncATanH, EFuncAbs,
         EFuncCeil, EFuncCos, EFuncCosH, EFuncE, EFuncFloor, EFuncInt, EFuncLog, EFuncMax, EFuncMin,
-        EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncTan, EFuncTanH, EVar,
+        EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncSqrt, EFuncTan, EFuncTanH, EVar,
     },
     UnaryOp::{self, ENeg, ENot, EParentheses, EPos},
     Value,
@@ -167,6 +167,7 @@ pub enum Instruction {
     IFuncASinH(InstructionI),
     IFuncACosH(InstructionI),
     IFuncATanH(InstructionI),
+    IFuncSqrt(InstructionI),
 
     IPrintFunc(PrintFunc), // Not optimized (it would be pointless because of i/o bottleneck).
 }
@@ -176,8 +177,8 @@ use Instruction::IUnsafeVar;
 use Instruction::{
     IAdd, IConst, IExp, IFunc, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan, IFuncATanH,
     IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog, IFuncMax, IFuncMin,
-    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncTan, IFuncTanH, IInv, IMod, IMul, INeg, INot,
-    IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+    IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan, IFuncTanH, IInv, IMod, IMul,
+    INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
 };
 
 impl Default for Instruction {
@@ -827,6 +828,7 @@ impl Compiler for StdFunc {
                 }
                 if is_all_const {
                     let computed_value = eval_var!(ns, name, f64_args, unsafe {
+                        #[allow(invalid_reference_casting)]
                         &mut *(&pslab.char_buf as *const _ as *mut _)
                     });
                     if let Ok(value) = computed_value {
@@ -1121,6 +1123,14 @@ impl Compiler for StdFunc {
                     IConst(c.atanh())
                 } else {
                     IFuncATanH(cslab.push_instr(instr))
+                }
+            }
+            EFuncSqrt(i) => {
+                let instr = get_expr!(pslab, i).compile(pslab, cslab, ns);
+                if let IConst(c) = instr {
+                    IConst(c.sqrt())
+                } else {
+                    IFuncSqrt(cslab.push_instr(instr))
                 }
             }
         }
