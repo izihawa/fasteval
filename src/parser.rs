@@ -46,8 +46,7 @@ pub struct ValueI(pub usize);
 /// An `Expression` is the top node of a parsed AST.
 ///
 /// It can be `compile()`d or `eval()`d.
-#[derive(Debug, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Expression {
     pub(crate) first: Value,
     pub(crate) pairs: Vec<ExprPair>, // cap=8
@@ -62,9 +61,13 @@ pub enum Value {
     EConstant(f64),
     EUnaryOp(UnaryOp),
     EStdFunc(StdFunc),
+    #[cfg(feature = "print-func")]
     EPrintFunc(PrintFunc),
 }
-use Value::{EConstant, EPrintFunc, EStdFunc, EUnaryOp};
+use Value::{EConstant, EStdFunc, EUnaryOp};
+
+#[cfg(feature = "print-func")]
+use Value::EPrintFunc;
 
 /// Unary Operators
 #[derive(Debug, PartialEq)]
@@ -161,6 +164,7 @@ use StdFunc::{
 
 /// Represents a `print()` function call in the `fasteval` expression AST.
 #[derive(Debug, PartialEq)]
+#[cfg(feature = "print-func")]
 pub struct PrintFunc(pub Vec<ExpressionOrString>); // cap=8
 
 /// Used by the `print()` function.  Can hold an `Expression` or a `String`.
@@ -169,8 +173,11 @@ pub enum ExpressionOrString {
     EExpr(ExpressionI),
     EStr(String), // cap=64
 }
+
+#[cfg(feature = "print-func")]
 use ExpressionOrString::{EExpr, EStr};
 
+#[cfg(feature = "print-func")]
 impl Clone for PrintFunc {
     fn clone(&self) -> Self {
         let mut vec = Vec::<ExpressionOrString>::with_capacity(self.0.len());
@@ -713,13 +720,15 @@ impl Parser {
                     }
                     Bite(open_parenth) => {
                         // VarNames with Parenthesis are first matched against builtins, then custom.
-                        match varname.as_ref() {
+                        match varname.as_str() {
+                            #[cfg(feature = "print-func")]
                             "print" => Ok(Bite(EPrintFunc(self.read_printfunc(
                                 slab,
                                 bs,
                                 depth,
                                 open_parenth,
                             )?))),
+
                             _ => Ok(Bite(EStdFunc(self.read_func(
                                 varname,
                                 slab,
@@ -1088,6 +1097,7 @@ impl Parser {
         }
     }
 
+    #[cfg(feature = "print-func")]
     fn read_printfunc(
         &self,
         slab: &mut ParseSlab,
@@ -1128,6 +1138,7 @@ impl Parser {
         Ok(PrintFunc(args))
     }
 
+    #[cfg(feature = "print-func")]
     fn read_expressionorstring(
         &self,
         slab: &mut ParseSlab,
@@ -1142,6 +1153,7 @@ impl Parser {
     }
 
     // TODO: Improve this logic, especially to handle embedded quotes:
+    #[cfg(feature = "print-func")]
     fn read_string(bs: &mut &[u8]) -> Result<Token<String>, Error> {
         spaces!(bs);
 
@@ -1220,7 +1232,7 @@ mod internal_tests {
     use super::*;
     use crate::slab::Slab;
 
-/// Commented so I can compile with stable Rust.
+    /// Commented so I can compile with stable Rust.
     // extern crate test;
     // use test::{Bencher, black_box};
 

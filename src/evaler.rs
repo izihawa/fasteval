@@ -14,11 +14,14 @@ use crate::compiler::{
         self, IAdd, IConst, IExp, IFunc, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan,
         IFuncATanH, IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog,
         IFuncMax, IFuncMin, IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan,
-        IFuncTanH, IInv, IMod, IMul, INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE,
-        INE, IOR,
+        IFuncTanH, IInv, IMod, IMul, INeg, INot, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
     },
     IC,
 };
+
+#[cfg(feature = "print-func")]
+use crate::compiler::Instruction::IPrintFunc;
+
 use crate::error::Error;
 use crate::evalns::EvalNamespace;
 #[cfg(feature = "unsafe-vars")]
@@ -29,16 +32,22 @@ use crate::parser::{
         self, EAdd, EDiv, EExp, EMod, EMul, ESub, EAND, EEQ, EGT, EGTE, ELT, ELTE, ENE, EOR,
     },
     Expression,
-    ExpressionOrString::{EExpr, EStr},
-    PrintFunc,
     StdFunc::{
         self, EFunc, EFuncACos, EFuncACosH, EFuncASin, EFuncASinH, EFuncATan, EFuncATanH, EFuncAbs,
         EFuncCeil, EFuncCos, EFuncCosH, EFuncE, EFuncFloor, EFuncInt, EFuncLog, EFuncMax, EFuncMin,
         EFuncPi, EFuncRound, EFuncSign, EFuncSin, EFuncSinH, EFuncSqrt, EFuncTan, EFuncTanH, EVar,
     },
     UnaryOp::{self, ENeg, ENot, EParentheses, EPos},
-    Value::{self, EConstant, EPrintFunc, EStdFunc, EUnaryOp},
+    Value::{self, EConstant, EStdFunc, EUnaryOp},
 };
+
+#[cfg(feature = "print-func")]
+use crate::parser::{
+    ExpressionOrString::{EExpr, EStr},
+    PrintFunc,
+    Value::EPrintFunc,
+};
+
 use crate::slab::Slab;
 
 use std::collections::BTreeSet;
@@ -318,6 +327,7 @@ impl Evaler for Value {
             EConstant(_) => (),
             EUnaryOp(u) => u._var_names(slab, dst),
             EStdFunc(f) => f._var_names(slab, dst),
+            #[cfg(feature = "print-func")]
             EPrintFunc(f) => f._var_names(slab, dst),
         };
     }
@@ -326,6 +336,7 @@ impl Evaler for Value {
             EConstant(c) => Ok(*c),
             EUnaryOp(u) => u.eval(slab, ns),
             EStdFunc(f) => f.eval(slab, ns),
+            #[cfg(feature = "print-func")]
             EPrintFunc(f) => f.eval(slab, ns),
         }
     }
@@ -550,6 +561,7 @@ impl Evaler for StdFunc {
     }
 }
 
+#[cfg(feature = "print-func")]
 impl Evaler for PrintFunc {
     fn _var_names(&self, slab: &Slab, dst: &mut BTreeSet<String>) {
         for x_or_s in &self.0 {
@@ -663,6 +675,7 @@ impl Evaler for Instruction {
                 ic_to_instr!(slab.cs, iconst, ric)._var_names(slab, dst);
             }
 
+            #[cfg(feature = "print-func")]
             IPrintFunc(pf) => pf._var_names(slab, dst),
         }
     }
@@ -807,6 +820,7 @@ impl Evaler for Instruction {
                 }
             }
 
+            #[cfg(feature = "print-func")]
             IPrintFunc(pf) => pf.eval(slab, ns),
 
             // Put these last because you should be using the eval_compiled*!() macros to eliminate function calls.

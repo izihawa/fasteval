@@ -30,7 +30,7 @@ use crate::parser::{
     BinaryOp::{
         self, EAdd, EDiv, EExp, EMod, EMul, ESub, EAND, EEQ, EGT, EGTE, ELT, ELTE, ENE, EOR,
     },
-    ExprPair, Expression, PrintFunc,
+    ExprPair, Expression,
     StdFunc::{
         self, EFunc, EFuncACos, EFuncACosH, EFuncASin, EFuncASinH, EFuncATan, EFuncATanH, EFuncAbs,
         EFuncCeil, EFuncCos, EFuncCosH, EFuncE, EFuncFloor, EFuncInt, EFuncLog, EFuncMax, EFuncMin,
@@ -41,6 +41,9 @@ use crate::parser::{
 };
 use crate::slab::{CompileSlab, ParseSlab};
 use crate::Error;
+
+#[cfg(feature = "print-func")]
+use crate::parser::PrintFunc;
 
 /// `true` --> `1.0`,  `false` --> `0.0`
 #[macro_export]
@@ -169,6 +172,7 @@ pub enum Instruction {
     IFuncATanH(InstructionI),
     IFuncSqrt(InstructionI),
 
+    #[cfg(feature = "print-func")]
     IPrintFunc(PrintFunc), // Not optimized (it would be pointless because of i/o bottleneck).
 }
 use crate::{eval_var, EvalNamespace};
@@ -178,8 +182,11 @@ use Instruction::{
     IAdd, IConst, IExp, IFunc, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan, IFuncATanH,
     IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog, IFuncMax, IFuncMin,
     IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan, IFuncTanH, IInv, IMod, IMul,
-    INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+    INeg, INot, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
 };
+
+#[cfg(feature = "print-func")]
+use Instruction::IPrintFunc;
 
 impl Default for Instruction {
     fn default() -> Self {
@@ -752,6 +759,7 @@ impl Compiler for Value {
             Value::EConstant(c) => IConst(*c),
             Value::EUnaryOp(u) => u.compile(pslab, cslab, ns),
             Value::EStdFunc(f) => f.compile(pslab, cslab, ns),
+            #[cfg(feature = "print-func")]
             Value::EPrintFunc(pf) => IPrintFunc(pf.clone()),
         }
     }

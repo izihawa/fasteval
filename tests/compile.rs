@@ -4,15 +4,22 @@ use fasteval2::compiler::Instruction::{
     self, IAdd, IConst, IExp, IFuncACos, IFuncACosH, IFuncASin, IFuncASinH, IFuncATan, IFuncATanH,
     IFuncAbs, IFuncCeil, IFuncCos, IFuncCosH, IFuncFloor, IFuncInt, IFuncLog, IFuncMax, IFuncMin,
     IFuncRound, IFuncSign, IFuncSin, IFuncSinH, IFuncSqrt, IFuncTan, IFuncTanH, IInv, IMod, IMul,
-    INeg, INot, IPrintFunc, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
+    INeg, INot, IVar, IAND, IEQ, IGT, IGTE, ILT, ILTE, INE, IOR,
 };
+
+#[cfg(feature = "print-func")]
+use fasteval2::{
+    compiler::Instruction::IPrintFunc,
+    parser::{
+        ExpressionOrString::{EExpr, EStr},
+        PrintFunc,
+    },
+};
+
 use fasteval2::compiler::IC;
 #[cfg(feature = "eval-builtin")]
 use fasteval2::parser::{EvalFunc, KWArg};
-use fasteval2::parser::{
-    ExpressionOrString::{EExpr, EStr},
-    PrintFunc,
-};
+
 use fasteval2::{
     eval_compiled, eval_compiled_ref, CachedCallbackNamespace, Compiler, EmptyNamespace, Error,
     Evaler, ExpressionI, InstructionI, Parser, Slab,
@@ -913,8 +920,11 @@ fn all_instrs() {
         let (_s, i) = comp("int");
         assert_eq!(i, IVar("int".to_string()));
 
-        let (_s, i) = comp("print");
-        assert_eq!(i, IVar("print".to_string()));
+        #[cfg(feature = "print-func")]
+        {
+            let (_s, i) = comp("print");
+            assert_eq!(i, IVar("print".to_string()));
+        }
 
         let (_s, i) = comp("eval");
         assert_eq!(i, IVar("eval".to_string()));
@@ -1352,6 +1362,7 @@ fn all_instrs() {
     );
 
     // IPrintFunc
+    #[cfg(feature = "print-func")]
     comp_chk(
         r#"print("test",1.23)"#,
         IPrintFunc(PrintFunc(vec![

@@ -22,4 +22,4 @@ default = ["alpha-keywords"]
 alpha-keywords = []  # Enable 'NaN', 'inf', 'and', 'or'
 unsafe-vars = []     # tinyexpr-style pointer-based variables.
 nightly = []         # Enable features that depend on Rust nightly.
-
+print-func = []      # Enables the builtin print function
