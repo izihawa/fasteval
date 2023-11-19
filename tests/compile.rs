@@ -481,9 +481,9 @@ fn all_instrs() {
     comp_chk("4 ^ 0.5", IConst(2.0), "CompileSlab{ instrs:{} }", 2.0);
     comp_chk(
         "2 ^ 0.5",
-        IConst(1.4142135623730951),
+        IConst(std::f64::consts::SQRT_2),
         "CompileSlab{ instrs:{} }",
-        1.4142135623730951,
+        std::f64::consts::SQRT_2,
     );
     comp_chk_str(
         "-4 ^ 0.5",
@@ -498,7 +498,7 @@ fn all_instrs() {
             power: IC::C(0.5),
         },
         "CompileSlab{ instrs:{ 0:IVar(\"y\") } }",
-        1.4142135623730951,
+        std::f64::consts::SQRT_2,
     );
     comp_chk(
         "2 ^ 3 ^ 2",
@@ -1038,15 +1038,15 @@ fn all_instrs() {
     comp_chk("log(10)", IConst(1.0), "CompileSlab{ instrs:{} }", 1.0);
     comp_chk(
         "log(2, 10)",
-        IConst(3.321928094887362),
+        IConst(std::f64::consts::LOG2_10),
         "CompileSlab{ instrs:{} }",
-        3.321928094887362,
+        std::f64::consts::LOG2_10,
     );
     comp_chk(
         "log(e(), 10)",
-        IConst(2.302585092994046),
+        IConst(std::f64::consts::LN_10),
         "CompileSlab{ instrs:{} }",
-        2.302585092994046,
+        std::f64::consts::LN_10,
     );
     comp_chk(
         "log(x)",
@@ -1278,15 +1278,15 @@ fn all_instrs() {
     // IFuncACos
     comp_chk(
         "acos(0)",
-        IConst(1.5707963267948966),
+        IConst(std::f64::consts::FRAC_PI_2),
         "CompileSlab{ instrs:{} }",
-        1.5707963267948966,
+        std::f64::consts::FRAC_PI_2,
     );
     comp_chk(
         "acos(w)",
         IFuncACos(InstructionI(0)),
         "CompileSlab{ instrs:{ 0:IVar(\"w\") } }",
-        1.5707963267948966,
+        std::f64::consts::FRAC_PI_2,
     );
 
     // IFuncATan
