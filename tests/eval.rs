@@ -486,7 +486,7 @@ fn aaa_basics() {
     );
 }
 
-//// Commented out until we bring CachedLayeredNamespace back.
+/// Commented out until we bring CachedLayeredNamespace back.
 // #[derive(Debug)]
 // struct TestEvaler;
 // impl Evaler for TestEvaler {
@@ -566,9 +566,9 @@ fn custom_func() {
             "x" => Some(1.0),
             "y" => Some(2.0),
             "z" => Some(3.0),
-            "foo" => Some(args.get(0).unwrap_or(&std::f64::NAN) * 10.0),
+            "foo" => Some(args.first().unwrap_or(&std::f64::NAN) * 10.0),
             "bar" => {
-                Some(args.get(0).unwrap_or(&std::f64::NAN) + args.get(1).unwrap_or(&std::f64::NAN))
+                Some(args.first().unwrap_or(&std::f64::NAN) + args.get(1).unwrap_or(&std::f64::NAN))
             }
             _ => None,
         }

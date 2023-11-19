@@ -237,10 +237,9 @@ impl Evaler for Expression {
                 };
                 if op == search {
                     let res = op.binaryop_eval(vals.get(i), vals.get(i + 1));
-                    match vals.get_mut(i) {
-                        Some(val_ref) => *val_ref = res,
-                        None => (), // unreachable
-                    };
+                    if let Some(val_ref) = vals.get_mut(i) {
+                        *val_ref = res
+                    }
                     remove_no_panic(vals, i + 1);
                     remove_no_panic(ops, i);
                 }
@@ -255,14 +254,13 @@ impl Evaler for Expression {
                     Some(op) => {
                         if *op == search {
                             let res = op.binaryop_eval(vals.get(i), vals.get(i + 1));
-                            match vals.get_mut(i) {
-                                Some(val_ref) => *val_ref = res,
-                                None => (), // unreachable
-                            };
+                            if let Some(val_ref) = vals.get_mut(i) {
+                                *val_ref = res
+                            }
                             remove_no_panic(vals, i + 1);
                             remove_no_panic(ops, i);
                         } else {
-                            i = i + 1;
+                            i += 1;
                         }
                     }
                 }
@@ -277,14 +275,13 @@ impl Evaler for Expression {
                     Some(op) => {
                         if search.contains(op) {
                             let res = op.binaryop_eval(vals.get(i), vals.get(i + 1));
-                            match vals.get_mut(i) {
-                                Some(val_ref) => *val_ref = res,
-                                None => (), // unreachable
-                            };
+                            if let Some(val_ref) = vals.get_mut(i) {
+                                *val_ref = res
+                            }
                             remove_no_panic(vals, i + 1);
                             remove_no_panic(ops, i);
                         } else {
-                            i = i + 1;
+                            i += 1;
                         }
                     }
                 }

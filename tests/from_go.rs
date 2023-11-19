@@ -8,10 +8,10 @@ use fasteval2::{
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 
-fn parse_raw<'a>(s: &str, slab: &'a mut Slab) -> Result<ExpressionI, Error> {
+fn parse_raw(s: &str, slab: &mut Slab) -> Result<ExpressionI, Error> {
     Parser::new().parse(s, &mut slab.ps)
 }
-fn ok_parse<'a>(s: &str, slab: &'a mut Slab) -> ExpressionI {
+fn ok_parse(s: &str, slab: &mut Slab) -> ExpressionI {
     parse_raw(s, slab).unwrap()
 }
 
@@ -24,7 +24,7 @@ fn do_eval(s: &str) -> f64 {
         .unwrap()
 }
 
-//// TODO:
+/// TODO:
 // fn capture_stderr(f:&dyn Fn()) -> String {
 //     f();
 //     "".to_string()
